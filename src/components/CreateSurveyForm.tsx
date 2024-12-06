@@ -4,12 +4,14 @@ import { Input } from './ui/input';
 import { Textarea } from './ui/textarea';
 import { supabase } from '@/lib/supabase';
 import { useToast } from './ui/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 export const CreateSurveyForm = () => {
   const [title, setTitle] = useState('');
   const [questions, setQuestions] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,6 +37,9 @@ export const CreateSurveyForm = () => {
 
       setTitle('');
       setQuestions('');
+      
+      // Redirection vers la page des liens
+      navigate(`/survey-links/${data.id}`);
       
     } catch (error) {
       toast({
