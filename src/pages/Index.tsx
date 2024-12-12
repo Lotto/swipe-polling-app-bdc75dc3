@@ -20,12 +20,16 @@ const Index = () => {
     }
   });
 
-  const handleShare = async (surveyId: string) => {
-    const shareUrl = `${window.location.origin}/survey/${surveyId}`;
-    await navigator.clipboard.writeText(shareUrl);
+  const handleCopyLink = async (surveyId: string, type: "sondage" | "résultats") => {
+    const baseUrl = window.location.origin;
+    const url = type === "sondage" 
+      ? `${baseUrl}/survey/${surveyId}`
+      : `${baseUrl}/results/${surveyId}`;
+      
+    await navigator.clipboard.writeText(url);
     toast({
       title: "Lien copié !",
-      description: "Le lien du sondage a été copié dans votre presse-papiers.",
+      description: `Le lien pour ${type === "sondage" ? "répondre au" : "voir les résultats du"} sondage a été copié.`,
     });
   };
 
@@ -44,16 +48,27 @@ const Index = () => {
             <h2 className="text-2xl font-bold mb-6">Vos sondages</h2>
             <div className="space-y-4">
               {surveys.map((survey) => (
-                <div key={survey.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <div key={survey.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-gray-50 rounded-lg gap-4">
                   <div>
                     <h3 className="font-semibold">{survey.title}</h3>
                     <p className="text-sm text-gray-500">
                       {survey.questions.length} questions
                     </p>
                   </div>
-                  <Button onClick={() => handleShare(survey.id)}>
-                    Partager
-                  </Button>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <Button 
+                      variant="default"
+                      onClick={() => handleCopyLink(survey.id, "sondage")}
+                    >
+                      Copier lien sondage
+                    </Button>
+                    <Button 
+                      variant="outline"
+                      onClick={() => handleCopyLink(survey.id, "résultats")}
+                    >
+                      Copier lien résultats
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
