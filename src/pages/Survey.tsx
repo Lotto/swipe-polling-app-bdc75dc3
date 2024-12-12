@@ -7,6 +7,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useState } from "react";
 import { ThumbsUp, ThumbsDown } from "lucide-react";
 import { useSwipeable } from "react-swipeable";
+import { Card, CardContent } from "@/components/ui/card";
 
 const SurveyPage = () => {
   const { id } = useParams();
@@ -112,18 +113,32 @@ const SurveyPage = () => {
           </div>
           <div 
             {...handlers}
-            className={`text-center mb-8 cursor-grab active:cursor-grabbing transition-transform duration-300 ${
-              swipeDirection === "left" 
-                ? "-translate-x-full opacity-0" 
-                : swipeDirection === "right" 
-                ? "translate-x-full opacity-0" 
-                : ""
-            }`}
+            className="w-full max-w-md perspective-1000"
           >
-            <h1 className="text-2xl font-bold mb-8">{survey.title}</h1>
-            <p className="text-xl mb-8">{currentQuestion}</p>
+            <Card className={`transform-gpu transition-all duration-500 cursor-grab active:cursor-grabbing ${
+              swipeDirection === "left" 
+                ? "-translate-x-[150%] -rotate-12 opacity-0" 
+                : swipeDirection === "right" 
+                ? "translate-x-[150%] rotate-12 opacity-0" 
+                : "hover:scale-[1.02] hover:-translate-y-1"
+            }`}>
+              <CardContent className="p-8">
+                <h1 className="text-2xl font-bold mb-8 text-center">{survey.title}</h1>
+                <p className="text-xl mb-8 text-center">{currentQuestion}</p>
+                <div className="flex justify-between items-center mt-6 text-gray-400">
+                  <div className="flex items-center gap-2">
+                    <ThumbsDown className="w-5 h-5" />
+                    <span>Glisser à gauche</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span>Glisser à droite</span>
+                    <ThumbsUp className="w-5 h-5" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
-          <div className="flex gap-4">
+          <div className="mt-8 flex gap-4">
             <Button
               variant="outline"
               size="lg"
@@ -144,9 +159,6 @@ const SurveyPage = () => {
           </div>
           <div className="mt-4 text-sm text-gray-500">
             Question {currentQuestionIndex + 1} sur {survey.questions.length}
-          </div>
-          <div className="mt-8 text-sm text-gray-500">
-            Glissez vers la droite pour répondre "Oui" ou vers la gauche pour répondre "Non"
           </div>
         </>
       ) : (
