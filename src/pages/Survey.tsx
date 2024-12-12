@@ -6,12 +6,14 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { useState } from "react";
 import { ThumbsUp, ThumbsDown } from "lucide-react";
+import { useSwipeable } from "react-swipeable";
 
 const SurveyPage = () => {
   const { id } = useParams();
   const { toast } = useToast();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [swipeDirection, setSwipeDirection] = useState<"left" | "right" | null>(null);
 
   const { data: survey, isLoading } = useQuery({
     queryKey: ["survey", id],
@@ -40,6 +42,7 @@ const SurveyPage = () => {
     onSuccess: () => {
       if (survey && currentQuestionIndex < survey.questions.length - 1) {
         setCurrentQuestionIndex((prev) => prev + 1);
+        setSwipeDirection(null);
       } else {
         setIsSubmitting(true);
         toast({
@@ -58,6 +61,19 @@ const SurveyPage = () => {
         variant: "destructive",
       });
     },
+  });
+
+  const handlers = useSwipeable({
+    onSwipedLeft: () => {
+      setSwipeDirection("left");
+      submitResponse.mutate({ isLiked: false });
+    },
+    onSwipedRight: () => {
+      setSwipeDirection("right");
+      submitResponse.mutate({ isLiked: true });
+    },
+    trackMouse: true,
+    preventScrollOnSwipe: true,
   });
 
   if (isLoading) {
@@ -94,7 +110,16 @@ const SurveyPage = () => {
               ></div>
             </div>
           </div>
-          <div className="text-center mb-8">
+          <div 
+            {...handlers}
+            className={`text-center mb-8 cursor-grab active:cursor-grabbing transition-transform duration-300 ${
+              swipeDirection === "left" 
+                ? "-translate-x-full opacity-0" 
+                : swipeDirection === "right" 
+                ? "translate-x-full opacity-0" 
+                : ""
+            }`}
+          >
             <h1 className="text-2xl font-bold mb-8">{survey.title}</h1>
             <p className="text-xl mb-8">{currentQuestion}</p>
           </div>
@@ -119,6 +144,9 @@ const SurveyPage = () => {
           </div>
           <div className="mt-4 text-sm text-gray-500">
             Question {currentQuestionIndex + 1} sur {survey.questions.length}
+          </div>
+          <div className="mt-8 text-sm text-gray-500">
+            Glissez vers la droite pour répondre "Oui" ou vers la gauche pour répondre "Non"
           </div>
         </>
       ) : (
