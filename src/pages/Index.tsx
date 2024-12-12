@@ -20,16 +20,12 @@ const Index = () => {
     }
   });
 
-  const handleCopyLink = async (surveyId: string, type: "sondage" | "résultats") => {
-    const baseUrl = window.location.origin;
-    const url = type === "sondage" 
-      ? `${baseUrl}/survey/${surveyId}`
-      : `${baseUrl}/results/${surveyId}`;
-      
+  const handleCopyLink = async (surveyId: string) => {
+    const url = `${window.location.origin}/survey/${surveyId}`;
     await navigator.clipboard.writeText(url);
     toast({
       title: "Lien copié !",
-      description: `Le lien pour ${type === "sondage" ? "répondre au" : "voir les résultats du"} sondage a été copié.`,
+      description: "Le lien pour répondre au sondage a été copié.",
     });
   };
 
@@ -58,15 +54,15 @@ const Index = () => {
                   <div className="flex flex-col sm:flex-row gap-2">
                     <Button 
                       variant="default"
-                      onClick={() => handleCopyLink(survey.id, "sondage")}
+                      onClick={() => handleCopyLink(survey.id)}
                     >
                       Copier lien sondage
                     </Button>
                     <Button 
                       variant="outline"
-                      onClick={() => handleCopyLink(survey.id, "résultats")}
+                      onClick={() => window.open(`/results/${survey.id}`, '_blank')}
                     >
-                      Copier lien résultats
+                      Voir les résultats
                     </Button>
                   </div>
                 </div>
