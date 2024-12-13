@@ -94,8 +94,8 @@ const Admin = () => {
               <Button type="submit" className="w-full">
                 Se connecter
               </Button>
-            </div>
-          </form>
+            </form>
+          </div>
         </div>
       </div>
     );
