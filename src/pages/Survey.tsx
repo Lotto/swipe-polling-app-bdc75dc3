@@ -14,7 +14,8 @@ const SurveyPage = () => {
   const { toast } = useToast();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [swipeDirection, setSwipeDirection] = useState<"left" | "right" | null>(null);
+  const [swipePosition, setSwipePosition] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
 
   const { data: survey, isLoading } = useQuery({
     queryKey: ["survey", id],
@@ -43,7 +44,7 @@ const SurveyPage = () => {
     onSuccess: () => {
       if (survey && currentQuestionIndex < survey.questions.length - 1) {
         setCurrentQuestionIndex((prev) => prev + 1);
-        setSwipeDirection(null);
+        setSwipePosition(0);
       } else {
         setIsSubmitting(true);
         toast({
@@ -65,13 +66,28 @@ const SurveyPage = () => {
   });
 
   const handlers = useSwipeable({
+    onSwiping: (e) => {
+      setIsDragging(true);
+      const newPosition = e.deltaX;
+      setSwipePosition(newPosition);
+    },
     onSwipedLeft: () => {
-      setSwipeDirection("left");
-      submitResponse.mutate({ isLiked: false });
+      if (Math.abs(swipePosition) > 100) {
+        submitResponse.mutate({ isLiked: false });
+      }
+      setIsDragging(false);
+      setSwipePosition(0);
     },
     onSwipedRight: () => {
-      setSwipeDirection("right");
-      submitResponse.mutate({ isLiked: true });
+      if (Math.abs(swipePosition) > 100) {
+        submitResponse.mutate({ isLiked: true });
+      }
+      setIsDragging(false);
+      setSwipePosition(0);
+    },
+    onTouchEndOrOnMouseUp: () => {
+      setIsDragging(false);
+      setSwipePosition(0);
     },
     trackMouse: true,
     preventScrollOnSwipe: true,
@@ -96,8 +112,19 @@ const SurveyPage = () => {
     );
   }
 
-  const currentQuestion = survey.questions[currentQuestionIndex];
-  const progress = ((currentQuestionIndex + 1) / survey.questions.length) * 100;
+  const currentQuestion = survey?.questions[currentQuestionIndex];
+  const progress = ((currentQuestionIndex + 1) / (survey?.questions.length || 1)) * 100;
+
+  const getSwipeStyles = () => {
+    const rotate = swipePosition / 10;
+    const opacity = Math.max(1 - Math.abs(swipePosition) / 500, 0.5);
+    return {
+      transform: `translateX(${swipePosition}px) rotate(${rotate}deg)`,
+      opacity,
+      transition: isDragging ? 'none' : 'all 0.5s ease-out',
+      cursor: isDragging ? 'grabbing' : 'grab',
+    };
+  };
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4">
@@ -115,15 +142,12 @@ const SurveyPage = () => {
             {...handlers}
             className="w-full max-w-md perspective-1000"
           >
-            <Card className={`transform-gpu transition-all duration-500 cursor-grab active:cursor-grabbing ${
-              swipeDirection === "left" 
-                ? "-translate-x-[150%] -rotate-12 opacity-0" 
-                : swipeDirection === "right" 
-                ? "translate-x-[150%] rotate-12 opacity-0" 
-                : "hover:scale-[1.02] hover:-translate-y-1"
-            }`}>
+            <Card 
+              className="transform-gpu hover:scale-[1.02] hover:-translate-y-1"
+              style={getSwipeStyles()}
+            >
               <CardContent className="p-8">
-                <h1 className="text-2xl font-bold mb-8 text-center">{survey.title}</h1>
+                <h1 className="text-2xl font-bold mb-8 text-center">{survey?.title}</h1>
                 <p className="text-xl mb-8 text-center">{currentQuestion}</p>
                 <div className="flex justify-between items-center mt-6 text-gray-400">
                   <div className="flex items-center gap-2">
@@ -158,7 +182,7 @@ const SurveyPage = () => {
             </Button>
           </div>
           <div className="mt-4 text-sm text-gray-500">
-            Question {currentQuestionIndex + 1} sur {survey.questions.length}
+            Question {currentQuestionIndex + 1} sur {survey?.questions.length}
           </div>
         </>
       ) : (
