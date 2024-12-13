@@ -4,6 +4,8 @@ import { Survey } from "@/types/survey";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { ExternalLink, Trash2 } from "lucide-react";
+import { useState } from "react";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -13,8 +15,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+const ADMIN_PASSWORD = "admin123"; // In a real app, this should be stored securely
+
 const Admin = () => {
   const { toast } = useToast();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [password, setPassword] = useState("");
+
   const { data: surveys, refetch } = useQuery({
     queryKey: ['surveys'],
     queryFn: async () => {
@@ -49,6 +56,50 @@ const Admin = () => {
     });
     refetch();
   };
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (password === ADMIN_PASSWORD) {
+      setIsAuthenticated(true);
+      setPassword("");
+    } else {
+      toast({
+        title: "Erreur",
+        description: "Mot de passe incorrect",
+        variant: "destructive",
+      });
+    }
+  };
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-pink-500 to-purple-600 py-12 px-4">
+        <div className="max-w-md mx-auto">
+          <div className="bg-white rounded-xl shadow-xl p-6">
+            <h1 className="text-2xl font-bold mb-6">Administration</h1>
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium mb-2">
+                  Mot de passe
+                </label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Entrez le mot de passe admin"
+                  required
+                />
+              </div>
+              <Button type="submit" className="w-full">
+                Se connecter
+              </Button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-500 to-purple-600 py-12 px-4">

@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
+import { Copy, ExternalLink } from "lucide-react";
 
 const SurveyLinks = () => {
   const { id } = useParams();
@@ -33,9 +34,18 @@ const SurveyLinks = () => {
                 <div className="flex-1 bg-gray-50 p-4 rounded-lg break-all">
                   {surveyUrl}
                 </div>
-                <Button onClick={() => handleCopyLink(surveyUrl, "sondage")}>
-                  Copier
-                </Button>
+                <div className="flex gap-2">
+                  <Button onClick={() => handleCopyLink(surveyUrl, "sondage")} size="icon">
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="icon"
+                    onClick={() => window.open(surveyUrl, '_blank')}
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </div>
 
@@ -45,9 +55,18 @@ const SurveyLinks = () => {
                 <div className="flex-1 bg-gray-50 p-4 rounded-lg break-all">
                   {resultsUrl}
                 </div>
-                <Button onClick={() => handleCopyLink(resultsUrl, "résultats")}>
-                  Copier
-                </Button>
+                <div className="flex gap-2">
+                  <Button onClick={() => handleCopyLink(resultsUrl, "résultats")} size="icon">
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="icon"
+                    onClick={() => window.open(resultsUrl, '_blank')}
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </div>
 
