@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import SurveyLinks from "./pages/SurveyLinks";
 import Survey from "./pages/Survey";
 import Results from "./pages/Results";
+import Admin from "./pages/Admin";
 
 const queryClient = new QueryClient();
 
@@ -21,6 +22,7 @@ const App = () => (
           <Route path="/survey-links/:id" element={<SurveyLinks />} />
           <Route path="/survey/:id" element={<Survey />} />
           <Route path="/results/:id" element={<Results />} />
+          <Route path="/admin" element={<Admin />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
