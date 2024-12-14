@@ -173,9 +173,10 @@ const SurveyPage = () => {
               Non
             </Button>
             <Button
+              variant="default"
               size="lg"
               onClick={() => submitResponse.mutate({ isLiked: true })}
-              className="flex items-center gap-2 bg-white"
+              className="flex items-center gap-2 bg-black text-white hover:bg-black/90"
             >
               <ThumbsUp className="w-5 h-5" />
               Oui
