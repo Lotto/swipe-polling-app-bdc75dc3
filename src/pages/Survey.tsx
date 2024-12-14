@@ -95,16 +95,16 @@ const SurveyPage = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+      <div className="min-h-screen bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
       </div>
     );
   }
 
   if (!survey) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
+      <div className="min-h-screen bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center">
+        <div className="bg-white rounded-xl shadow-xl p-6">
           <h1 className="text-2xl font-bold mb-4">Sondage introuvable</h1>
           <p className="text-gray-600">Ce sondage n'existe pas ou a été supprimé.</p>
         </div>
@@ -127,13 +127,13 @@ const SurveyPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-pink-500 to-purple-600 flex flex-col items-center justify-center p-4">
       {!isSubmitting ? (
         <>
-          <div className="w-full max-w-lg">
-            <div className="h-2 w-full bg-gray-200 rounded-full mb-6">
+          <div className="w-full max-w-lg mb-6">
+            <div className="h-2 w-full bg-white/20 rounded-full">
               <div
-                className="h-2 bg-blue-500 rounded-full transition-all duration-300"
+                className="h-2 bg-white rounded-full transition-all duration-300"
                 style={{ width: `${progress}%` }}
               ></div>
             </div>
@@ -143,7 +143,7 @@ const SurveyPage = () => {
             className="w-full max-w-md perspective-1000"
           >
             <Card 
-              className="transform-gpu hover:scale-[1.02] hover:-translate-y-1"
+              className="transform-gpu hover:scale-[1.02] hover:-translate-y-1 bg-white"
               style={getSwipeStyles()}
             >
               <CardContent className="p-8">
@@ -167,7 +167,7 @@ const SurveyPage = () => {
               variant="outline"
               size="lg"
               onClick={() => submitResponse.mutate({ isLiked: false })}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 bg-white"
             >
               <ThumbsDown className="w-5 h-5" />
               Non
@@ -175,18 +175,18 @@ const SurveyPage = () => {
             <Button
               size="lg"
               onClick={() => submitResponse.mutate({ isLiked: true })}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 bg-white"
             >
               <ThumbsUp className="w-5 h-5" />
               Oui
             </Button>
           </div>
-          <div className="mt-4 text-sm text-gray-500">
+          <div className="mt-4 text-sm text-white">
             Question {currentQuestionIndex + 1} sur {survey?.questions.length}
           </div>
         </>
       ) : (
-        <div className="text-center">
+        <div className="bg-white rounded-xl shadow-xl p-6 text-center">
           <h2 className="text-2xl font-bold mb-4">Merci pour vos réponses !</h2>
           <p className="text-gray-600">Cette fenêtre va se fermer automatiquement...</p>
         </div>
