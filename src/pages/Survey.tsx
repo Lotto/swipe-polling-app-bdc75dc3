@@ -167,7 +167,7 @@ const SurveyPage = () => {
               variant="outline"
               size="lg"
               onClick={() => submitResponse.mutate({ isLiked: false })}
-              className="flex items-center gap-2 bg-white"
+              className="flex items-center gap-2 bg-white text-gray-900"
             >
               <ThumbsDown className="w-5 h-5" />
               Non
@@ -175,7 +175,7 @@ const SurveyPage = () => {
             <Button
               size="lg"
               onClick={() => submitResponse.mutate({ isLiked: true })}
-              className="flex items-center gap-2 bg-white"
+              className="flex items-center gap-2 bg-white text-gray-900"
             >
               <ThumbsUp className="w-5 h-5" />
               Oui
