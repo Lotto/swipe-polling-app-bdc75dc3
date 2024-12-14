@@ -6,7 +6,7 @@ import { useSwipeable } from "react-swipeable";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/components/ui/use-toast";
-import { Survey } from "@/types/survey";
+import type { Survey as SurveyType } from "@/types/survey";
 
 const Survey = () => {
   const { id } = useParams();
@@ -16,28 +16,36 @@ const Survey = () => {
   const [rotation, setRotation] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
 
-  const { data, isLoading, error } = useQuery<Survey>(["survey", id], async () => {
-    const { data, error } = await supabase
-      .from("surveys")
-      .select("*")
-      .eq("id", id)
-      .single();
-    if (error) throw new Error(error.message);
-    return data;
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["survey", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("surveys")
+        .select("*")
+        .eq("id", id)
+        .single();
+      if (error) throw new Error(error.message);
+      return data as SurveyType;
+    }
   });
 
-  const submitResponse = useMutation(async (response) => {
-    const { error } = await supabase
-      .from("responses")
-      .insert([{ survey_id: id, isLiked: response.isLiked }]);
-    if (error) throw new Error(error.message);
+  const submitResponse = useMutation({
+    mutationFn: async (response: { isLiked: boolean }) => {
+      const { error } = await supabase
+        .from("responses")
+        .insert([{ survey_id: id, isLiked: response.isLiked }]);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
+      setCurrentQuestionIndex((prev) => prev + 1);
+    }
   });
 
   const handlers = useSwipeable({
     onSwipedLeft: () => submitResponse.mutate({ isLiked: false }),
     onSwipedRight: () => submitResponse.mutate({ isLiked: true }),
-    onMouseDown: () => setIsDragging(true),
-    onMouseUp: () => setIsDragging(false),
+    onTouchStartOrOnMouseDown: () => setIsDragging(true),
+    onTouchEndOrOnMouseUp: () => setIsDragging(false),
   });
 
   return (
@@ -58,7 +66,7 @@ const Survey = () => {
           >
             <div className="bg-white rounded-xl shadow-xl p-6">
               <h2 className="text-2xl font-bold mb-8">{data?.title}</h2>
-              {currentQuestionIndex < data?.questions?.length ? (
+              {currentQuestionIndex < (data?.questions?.length || 0) ? (
                 <>
                   <p className="text-lg mb-8">
                     {data?.questions[currentQuestionIndex]}
