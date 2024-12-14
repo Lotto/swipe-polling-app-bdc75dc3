@@ -1,198 +1,101 @@
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase";
-import { Survey } from "@/types/survey";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
-import { useState } from "react";
-import { ThumbsUp, ThumbsDown } from "lucide-react";
+import { ThumbsDown, ThumbsUp } from "lucide-react";
 import { useSwipeable } from "react-swipeable";
-import { Card, CardContent } from "@/components/ui/card";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { useToast } from "@/components/ui/use-toast";
+import { Survey } from "@/types/survey";
 
-const SurveyPage = () => {
+const Survey = () => {
   const { id } = useParams();
   const { toast } = useToast();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [swipePosition, setSwipePosition] = useState(0);
+  const [offset, setOffset] = useState(0);
+  const [rotation, setRotation] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
 
-  const { data: survey, isLoading } = useQuery({
-    queryKey: ["survey", id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("surveys")
-        .select("*")
-        .eq("id", id)
-        .single();
-
-      if (error) throw error;
-      return data as Survey;
-    },
+  const { data, isLoading, error } = useQuery<Survey>(["survey", id], async () => {
+    const { data, error } = await supabase
+      .from("surveys")
+      .select("*")
+      .eq("id", id)
+      .single();
+    if (error) throw new Error(error.message);
+    return data;
   });
 
-  const submitResponse = useMutation({
-    mutationFn: async ({ isLiked }: { isLiked: boolean }) => {
-      const { error } = await supabase.from("survey_responses").insert({
-        survey_id: id,
-        question_index: currentQuestionIndex,
-        is_liked: isLiked,
-      });
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      if (survey && currentQuestionIndex < survey.questions.length - 1) {
-        setCurrentQuestionIndex((prev) => prev + 1);
-        setSwipePosition(0);
-      } else {
-        setIsSubmitting(true);
-        toast({
-          title: "Merci !",
-          description: "Vos réponses ont été enregistrées.",
-        });
-        setTimeout(() => {
-          window.close();
-        }, 2000);
-      }
-    },
-    onError: () => {
-      toast({
-        title: "Erreur",
-        description: "Une erreur est survenue lors de l'enregistrement de votre réponse.",
-        variant: "destructive",
-      });
-    },
+  const submitResponse = useMutation(async (response) => {
+    const { error } = await supabase
+      .from("responses")
+      .insert([{ survey_id: id, isLiked: response.isLiked }]);
+    if (error) throw new Error(error.message);
   });
 
   const handlers = useSwipeable({
-    onSwiping: (e) => {
-      setIsDragging(true);
-      const newPosition = e.deltaX;
-      setSwipePosition(newPosition);
-    },
-    onSwipedLeft: () => {
-      if (Math.abs(swipePosition) > 100) {
-        submitResponse.mutate({ isLiked: false });
-      }
-      setIsDragging(false);
-      setSwipePosition(0);
-    },
-    onSwipedRight: () => {
-      if (Math.abs(swipePosition) > 100) {
-        submitResponse.mutate({ isLiked: true });
-      }
-      setIsDragging(false);
-      setSwipePosition(0);
-    },
-    onTouchEndOrOnMouseUp: () => {
-      setIsDragging(false);
-      setSwipePosition(0);
-    },
-    trackMouse: true,
-    preventScrollOnSwipe: true,
+    onSwipedLeft: () => submitResponse.mutate({ isLiked: false }),
+    onSwipedRight: () => submitResponse.mutate({ isLiked: true }),
+    onMouseDown: () => setIsDragging(true),
+    onMouseUp: () => setIsDragging(false),
   });
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
-      </div>
-    );
-  }
-
-  if (!survey) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center">
-        <div className="bg-white rounded-xl shadow-xl p-6">
-          <h1 className="text-2xl font-bold mb-4">Sondage introuvable</h1>
-          <p className="text-gray-600">Ce sondage n'existe pas ou a été supprimé.</p>
-        </div>
-      </div>
-    );
-  }
-
-  const currentQuestion = survey?.questions[currentQuestionIndex];
-  const progress = ((currentQuestionIndex + 1) / (survey?.questions.length || 1)) * 100;
-
-  const getSwipeStyles = () => {
-    const rotate = swipePosition / 10;
-    const opacity = Math.max(1 - Math.abs(swipePosition) / 500, 0.5);
-    return {
-      transform: `translateX(${swipePosition}px) rotate(${rotate}deg)`,
-      opacity,
-      transition: isDragging ? 'none' : 'all 0.5s ease-out',
-      cursor: isDragging ? 'grabbing' : 'grab',
-    };
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-500 to-purple-600 flex flex-col items-center justify-center p-4">
-      {!isSubmitting ? (
-        <>
-          <div className="w-full max-w-lg mb-6">
-            <div className="h-2 w-full bg-white/20 rounded-full">
-              <div
-                className="h-2 bg-white rounded-full transition-all duration-300"
-                style={{ width: `${progress}%` }}
-              ></div>
+    <div className="min-h-screen bg-gradient-to-br from-pink-500 to-purple-600 py-12 px-4">
+      <div className="max-w-4xl mx-auto">
+        {isLoading ? (
+          <div className="text-center text-white">Chargement...</div>
+        ) : error ? (
+          <div className="text-center text-white">Une erreur est survenue</div>
+        ) : (
+          <div
+            {...handlers}
+            className="relative"
+            style={{
+              transform: `translateX(${offset}px) rotate(${rotation}deg)`,
+              transition: isDragging ? "none" : "all 0.5s ease-out",
+            }}
+          >
+            <div className="bg-white rounded-xl shadow-xl p-6">
+              <h2 className="text-2xl font-bold mb-8">{data?.title}</h2>
+              {currentQuestionIndex < data?.questions?.length ? (
+                <>
+                  <p className="text-lg mb-8">
+                    {data?.questions[currentQuestionIndex]}
+                  </p>
+                  <div className="flex justify-between gap-4">
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      onClick={() => submitResponse.mutate({ isLiked: false })}
+                      className="flex items-center gap-2 bg-white text-gray-900"
+                    >
+                      <ThumbsDown className="w-5 h-5" />
+                      Non
+                    </Button>
+                    <Button
+                      size="lg"
+                      onClick={() => submitResponse.mutate({ isLiked: true })}
+                      className="flex items-center gap-2 bg-black text-white"
+                    >
+                      <ThumbsUp className="w-5 h-5" />
+                      Oui
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <div className="text-center">
+                  <h3 className="text-xl font-semibold mb-4">
+                    Merci d'avoir participé au sondage !
+                  </h3>
+                </div>
+              )}
             </div>
           </div>
-          <div 
-            {...handlers}
-            className="w-full max-w-md perspective-1000"
-          >
-            <Card 
-              className="transform-gpu hover:scale-[1.02] hover:-translate-y-1 bg-white"
-              style={getSwipeStyles()}
-            >
-              <CardContent className="p-8">
-                <h1 className="text-2xl font-bold mb-8 text-center">{survey?.title}</h1>
-                <p className="text-xl mb-8 text-center">{currentQuestion}</p>
-                <div className="flex justify-between items-center mt-6 text-gray-400">
-                  <div className="flex items-center gap-2">
-                    <ThumbsDown className="w-5 h-5" />
-                    <span>Glisser à gauche</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span>Glisser à droite</span>
-                    <ThumbsUp className="w-5 h-5" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-          <div className="mt-8 flex gap-4">
-            <Button
-              variant="outline"
-              size="lg"
-              onClick={() => submitResponse.mutate({ isLiked: false })}
-              className="flex items-center gap-2 bg-white text-gray-900"
-            >
-              <ThumbsDown className="w-5 h-5" />
-              Non
-            </Button>
-            <Button
-              size="lg"
-              onClick={() => submitResponse.mutate({ isLiked: true })}
-              className="flex items-center gap-2 bg-white text-gray-900"
-            >
-              <ThumbsUp className="w-5 h-5" />
-              Oui
-            </Button>
-          </div>
-          <div className="mt-4 text-sm text-white">
-            Question {currentQuestionIndex + 1} sur {survey?.questions.length}
-          </div>
-        </>
-      ) : (
-        <div className="bg-white rounded-xl shadow-xl p-6 text-center">
-          <h2 className="text-2xl font-bold mb-4">Merci pour vos réponses !</h2>
-          <p className="text-gray-600">Cette fenêtre va se fermer automatiquement...</p>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };
 
-export default SurveyPage;
+export default Survey;
